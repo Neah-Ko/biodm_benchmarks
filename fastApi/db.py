@@ -16,7 +16,9 @@ from sqlalchemy.orm import Mapped, relationship, mapped_column
 
 # Replace with your actual credentials
 # DATABASE_URL = "asyncpg+postgresql://devel_omicsdm_3tr_rw:pass@172.17.0.4:5432/fastapi"
-DATABASE_URL = "postgresql://devel_omicsdm_3tr_rw:pass@172.17.0.5:5432/fastapi"
+# DATABASE_URL = "postgresql://devel_omicsdm_3tr_rw:pass@172.17.0.5:5432/fastapi"
+# DATABASE_URL = "postgresql://devel_omicsdm_3tr_rw:pass@10.10.0.2:5432/fastapi"
+DATABASE_URL = "postgresql://fastapi:pass@10.10.0.2:5432/fastapi"
 
 # engine = create_engine(DATABASE_URL)
 # SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)

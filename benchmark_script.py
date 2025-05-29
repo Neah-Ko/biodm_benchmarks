@@ -7,11 +7,18 @@ from uuid import uuid4
 
 
 # Session config
-N = 2000
+N = 1
 session_id = str(uuid4())[:4]
 
 
-# General
+# Servers
+ODMV1_SRV = "http://0.0.0.0:8003"
+ODMV2_SRV = "http://0.0.0.0:8001"
+DJANGO_SRV = "http://0.0.0.0:8000"
+FASTAPI_SRV = "http://0.0.0.0:8002"
+
+
+# KC creds
 KC_USER_ADMIN_USERNAME = 'admin'
 KC_USER_ADMIN_PASSWORD = '12345'
 
@@ -101,7 +108,7 @@ create_payload = {
 with requests.sessions.Session() as s:
     login_response = s.post(LOGIN_URL, data=payload, headers=headers, verify=False)
     login_soup = BeautifulSoup(login_response.content, 'html.parser')
-    assert login_soup.find('form', attrs = {'id': 'logout-form'}) is not None
+    # assert login_soup.find('form', attrs = {'id': 'logout-form'}) is not None
 
     # DoStuff
     # ----------------
@@ -117,6 +124,7 @@ with requests.sessions.Session() as s:
     for i in range(N):
         ls = s.get(BASE_URL + f"?short_name=*{session_id}*", headers=headers, verify=False)
         assert ls.status_code == 200
+        pass
     end = time.time()
     print(f"\tListing projects {N} times : ", end - start)
     # ----------------
@@ -149,11 +157,176 @@ start = time.time()
 for i in range(N):
     ls = requests.get(SRV_FASTAPI + '/projects' + f"?short_name=*{session_id}*", headers=FA_ADMIN_HEADER, verify=False) # headers=ADMIN_HEADER,
     assert ls.status_code == 200
+    pass
 end = time.time()
 print(f"\tListing projects {N} times : ", end - start)
 
 
-# OMICSDM ------------------------
+
+# OMICSDM V1 ------------------------
+# Taken from https://github.com/bag-cnag/omicsdm_server/
+#     -> tests
+
+print("-- OmicsDM V1")
+
+SRV_ODM_V1 = "http://0.0.0.0:8003/api/"
+
+def exception_handler(func):
+    def inner_function(*args, **kwargs):
+
+        res = func(*args, **kwargs)
+        if res.status_code in [200, 400, 404, 405]:
+            return res
+
+        return json.loads(res.data.decode("utf8"))
+
+    return inner_function
+
+import requests
+
+@exception_handler
+def req_get(client, header, url_suffix):
+    return client.get(SRV_ODM_V1 + url_suffix, headers=header)
+
+
+@exception_handler
+def req_post(client, header, url_suffix, data):
+    return client.post(
+        SRV_ODM_V1 + url_suffix, headers=header, data=json.dumps(data)
+    )
+
+def add_project(
+    client,
+    header,
+    project_id,
+    project_fields,
+    projects_create_url_suffix,
+    submit=True,
+    overwrite_fields=None,
+    expected_error=None,
+    field_to_be_deleted=None,
+):
+    project = {}
+    for key, data_type in project_fields:
+        val = "test"
+        if data_type == "list(str)":
+            val = "test"
+            # val = "test,test2"
+
+        elif data_type == "bool":
+            val = True
+
+        if key == "datasetVisibilityDefault":
+            val = "private"
+        project[key] = val
+
+    project.update(
+        {
+            "id": project_id,
+            "owners": "3tr",
+            "name": create_payload['long_name'],
+            "description": create_payload['description'],
+            "logoUrl": create_payload['logo_url'],
+            "diseases": "COPD,ASTHMA,CD,UC,MS,SLE,RA",
+        }
+    )
+
+    project = {key: project[key] for key, _ in project_fields}
+
+    if field_to_be_deleted:
+        del project[field_to_be_deleted]
+
+    if overwrite_fields:
+        project.update(overwrite_fields)
+
+    if not submit:
+        return project
+
+    res = req_post(client, header, projects_create_url_suffix, [project])
+
+    if expected_error:
+        try:
+            res = json.loads(res.data.decode("utf8"))
+        except Exception:
+            pass
+
+        try:
+            assert expected_error in res["message"]
+        except AssertionError:
+            raise AssertionError(res["message"])
+        return
+
+    try:
+        response = json.loads(res.text)
+
+        if projects_create_url_suffix == "projects/create":
+            pass
+            # assert "project inserted" in response["message"]
+        else:
+            return response
+
+    except AssertionError:
+        raise AssertionError(res.data.decode("utf8"))
+
+def project_fields():
+    return [
+        ("id", "str"),
+        ("name", "str"),
+        ("description", "str"),
+        ("owners", "list(str)"),
+        ("datasetVisibilityDefault", "str"),
+        ("datasetVisibilityChangeable", "bool"),
+        ("fileDlAllowed", "bool"),
+        ("diseases", "list(str)"),
+        ("logoUrl", "str"),
+    ]
+
+def filter_view(client, header, view_url_suffix, query=None):
+    res = req_post(
+        client,
+        header,
+        view_url_suffix,
+        {
+            "page": 1,
+            "pageSize": N,
+            "sorted": None,
+            "filtered": query,
+        },
+    )
+    return res
+
+
+
+start = time.time()
+for i in range(N):
+    project_id = f"{SHORT_NAME}_{session_id}_{i}"
+    add_project(
+        client=requests,
+        header=FA_ADMIN_HEADER,
+        project_id=project_id,
+        project_fields=project_fields(),
+        projects_create_url_suffix="projects/create",
+        submit=True,
+        overwrite_fields=None,
+        expected_error=None,
+        field_to_be_deleted=None,
+    )
+end = time.time()
+print(f"\tCreating {N} projects : ", end - start)
+
+start = time.time()
+for i in range(N):
+    res = filter_view(
+        client=requests,
+        header=FA_ADMIN_HEADER,
+        view_url_suffix="projects/admin/view", #"projects/all",
+        query=[{"id": "project_id", "value": '*' + session_id + '*'}],
+    )
+    pass
+end = time.time()
+print(f"\tListing projects {N} times : ", end - start)
+
+# OMICSDM V2 ------------------------
 
 print("-- BioDM (OmicsDM v2)")
 

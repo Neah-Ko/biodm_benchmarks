@@ -1,0 +1,29 @@
+[build-system]
+requires = ["setuptools >= 61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "omicsdm_server_v2"
+description = "OmicsDM Server V2 - BioDM backend"
+authors = [
+  {name = "Etienne Jodry", email = "etienne.jodry@cnag.eu"},
+]
+dynamic = ["dependencies", "version"]
+requires-python = ">= 3.11"
+classifiers = [
+  "Development Status :: 3 - Pre-Release",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "License :: OSI Approved :: GNU/AGPLv3",
+]
+
+[project.urls]
+Repository = "https://github.com/bag-cnag/biodm.git"
+
+[tool.setuptools]
+packages = ["entities", "manifests"]
+
+[tool.setuptools.dynamic]
+dependencies = {file = ["requirements.txt"]}
+version = {attr = "__version__"}

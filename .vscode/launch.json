@@ -24,6 +24,32 @@
             "justMyCode": false            
         },
         {
+            "name": "Run OmicsDM V1 Server",
+            "type": "debugpy",
+            "request": "launch",
+            "python": "${workspaceFolder}/venv_omicsdmv1/bin/python3",
+            "module": "flask",
+            "cwd": "${workspaceFolder}/omicsdm_v1/server",
+            "env": {
+              "FLASK_APP": "app.py",
+              "FLASK_RUN_HOST": "0.0.0.0",
+              "FLASK_RUN_PORT": "8003",
+            },
+            "args": ["run"],
+            "jinja": true,
+            "justMyCode": false
+        },
+        {
+            "name": "Run OmicsDM V2 Server",
+            "type": "debugpy",
+            "request": "launch",
+            "cwd": "${workspaceFolder}/omicsdm_v2/",
+            "program": "app.py",
+            "console": "integratedTerminal",
+            "python": "${workspaceFolder}/venv_omicsdmv2/bin/python3",
+            "justMyCode": false,
+        },
+        {
             "name": "Debug benchmark Script",
             "type": "debugpy",
             "request": "launch",

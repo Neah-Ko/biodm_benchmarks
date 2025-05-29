@@ -1,4 +1,20 @@
 services:
+  shared-db:
+    image: postgres:16-bookworm
+    environment:
+      - POSTGRES_PASSWORD=pass
+      # - POSTGRES_DB=biodm
+      - POSTGRES_MULTIPLE_DATABASES=odmv1,odmv2,django,fastapi
+    healthcheck:
+      test: pg_isready -U postgres
+    volumes:
+      - ./init-multiple-databases.sh:/docker-entrypoint-initdb.d/init-multiple-databases.sh
+    stdin_open: true
+    tty: true
+    networks:
+      biodm-dev:
+        ipv4_address: 10.10.0.2
+
   kc-db:
     image: postgres:16-bookworm
     container_name: kc-db
@@ -41,7 +57,7 @@ services:
     command: [
       "start-dev",
       "--import-realm",
-      "--hostname-strict", "false",
+      "--hostname-strict", "false"
     ]
     depends_on:
       - kc-db

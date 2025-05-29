@@ -171,10 +171,11 @@ DATABASES = {
     # }
     'default': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME': 'target',
-        'USER': 'devel_omicsdm_3tr_rw',
+        'NAME': 'django',
+        # 'USER': 'devel_omicsdm_3tr_rw',
+        'USER': 'django',
         'PASSWORD': 'pass',
-        'HOST': '172.17.0.5',
+        'HOST': '10.10.0.2', # '172.17.0.5',
         'PORT': '5432',
     }
 }
