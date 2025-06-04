@@ -53,7 +53,7 @@
             "name": "Debug benchmark Script",
             "type": "debugpy",
             "request": "launch",
-            "program": "${workspaceFolder}/benchmark_script.py",
+            "program": "${workspaceFolder}/bm_script_term.py",
             "console": "integratedTerminal",
             "python": "${workspaceFolder}/venv_django/bin/python3",
             "justMyCode": false

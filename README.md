@@ -39,7 +39,7 @@ pip3 install .
 docker compose up -d --build 
 ```
 
-### FastAPI : Setup keycloak
+### FastAPI : Setup keycloak
 
 From the admin interface, normally at https://10.10.0.3:8443/
 
@@ -51,7 +51,7 @@ to give it all permissions.
 
 Finally, create a `3tr` group.
 
-### Django
+### Django
 
 Apply the migrations
 
@@ -61,3 +61,19 @@ Apply the migrations
 
 
 Those should be sufficient for the `.vscode/launch.json` entries to run.
+
+## Scripts
+
+`*_term` script is meant to output on the terminal, while `*_headless` can take a filename as its
+first parameter and will write results in such a way that they can be directly copied and pasted into a
+python script / visualization notebook.
+
+Second command line parameter can be a quote enclosed list of values for X vector.
+
+In short, you may use it like this:
+
+```sh
+python3 bm_script_headless.py out.txt '[1, 2, 3]'
+```
+
+Or you can edit X value directly in the top of the script.
